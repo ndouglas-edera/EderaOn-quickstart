@@ -239,7 +239,7 @@ journalctl -u protect-daemon -n 20 | sed \
 **Optional:** Destroy the zone when you are done.<br/>
 This releases the lock on the image files so that they can be reused:
 ```
-sudo protect zone destroy test-zone
+sudo protect zone destroy test-zone -all
 ```
 ## Run a workload
 Launch an interactive shell inside the zone:
