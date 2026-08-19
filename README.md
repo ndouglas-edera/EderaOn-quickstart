@@ -151,5 +151,9 @@ EDERA_LICENSE_KEY="$(cat /var/lib/edera/protect/license.key)" /bin/bash -c "$(cu
 <img width="1656" height="1190" alt="Screenshot 2026-08-19 at 11 22 34" src="https://github.com/user-attachments/assets/e3488a24-2301-4c13-bb4e-b6214b54b4e9" />
 
 
-Once the VM restarts, it will boot into the Edera hypervisor, and your Ubuntu VM will startup as an Edera-managed guest.
+Once the VM restarts, it will boot into the Edera hypervisor, and your Ubuntu VM will startup as an Edera-managed guest. <br/>
+You'll need to shell back into your EC2 instance to start playing around with Edera:
+```
+ssh -i "nigel-edera.pem" ubuntu@52.17.147.191
+```
 
