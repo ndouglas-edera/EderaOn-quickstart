@@ -171,9 +171,9 @@ Verify the services are running:
 ps auxww | grep protect
 ```
 #### systemd-detect-virt
-This utility checks the **[CPUID](https://en.wikipedia.org/wiki/CPUID)** and system interfaces to see if the environment is virtualised:
+I spun up the EC2 instance on ```Amazon AWS```. This utility checks **[CPUID](https://en.wikipedia.org/wiki/CPUID)** & system interfaces to see if the environment is virtualised:
 ```
-systemd-detect-virt | grep -E 'kvm'
+systemd-detect-virt | grep -E 'amazon'
 ```
 Edera zones currently run on a **[Xen](https://edera.dev/stories/why-edera-built-on-xen-a-secure-container-foundation)** Hypervisor. Starting recently, the same zone-based isolation will also run on **[KVM](https://docs.edera.dev/technical-overview/architecture/kvm/)** (Kernel-based Virtual Machines), preserving identical security guarantees while meeting teams where their infrastructure already is.
 
