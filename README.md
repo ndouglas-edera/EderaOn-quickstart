@@ -71,9 +71,14 @@ sudo docker run --pull always --pid host --privileged \
   ghcr.io/edera-dev/edera-check:stable preinstall \
   | sed -e 's/\([Pp]assed\)/\x1b[32m\1\x1b[0m/g' -e 's/\([Ff]ailed\)/\x1b[31m\1\x1b[0m/g'
 ```
-All Required checks should pass. <br/>
+
+It's absolutely critical that you are using an EC2 instance with **UEFI bootloader** - or you'll fail on the below error:
+<img width="1655" height="1187" alt="Screenshot 2026-08-19 at 10 40 16" src="https://github.com/user-attachments/assets/d83869bc-67f6-4e7f-b0dd-54af30d65054" />
+
+
+If you meet all the required checks, it should pass. <br/>
 If anything fails, address the issue before proceeding. <br/>
-This should be treated as disposable infrastructure only. <br/>
+EderaOn should be treated as disposable infrastructure only. <br/>
 Edera modifies your bootloader and there is no automated uninstall process. <br/>
 Please, only install on instances or VMs you can actually terminate or recreate.
 ```
