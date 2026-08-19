@@ -260,6 +260,19 @@ The ```6.18.XX``` output from ```uname -r``` is the version of the dedicated zon
 - In a traditional container, running ```uname -r``` inside a container simply returns the host's kernel version, because all containers share a single host kernel.
 - The output confirms that ```6.18.XX``` is not your host's shared kernel, but a completely isolated kernel running inside a **Type-1 hypervisor microVM**.
 
+Run the below commands from inside the same workload:
+```
+ps aux
+dmesg
+apk add dmidecode && dmidecode -t system
+lspci
+```
+
+- The ```ps aux``` command proved **complete process isolation** since PID 1 is ```sh```, and PID 2 is ```ps aux```. In a standard container, host processes can often leak into namespaces, but here the guest OS process space is totally isolated.
+- The ```dmesg``` command proves it **blocked kernel log access** since it returns an error ```klogctl: Operation not permitted```. The workload lacks ```CAP_SYSLOG``` or ring-buffer access to read kernel telemetry.
+- Likewise, **hardware memory abstraction** is seen through ```/dev/mem```. The ```dmidecode``` command failed with ```/dev/mem: Unexpected end of file```. Direct access to host physical memory addresses is blocked by the hypervisor layer.
+- There's also am **empty PCI Bus** as seen through the ```lspci``` command. Returning zero PCI devices proves the guest has no access to underlying physical host devices or host PCI pass-through.
+
 Type ```exit``` to leave the shell.
 
 #### Create long-lived workloads
