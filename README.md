@@ -218,6 +218,13 @@ If it takes longer, check logs with:
 sudo protect zone launch -n test-zone --min-cpus 1 -C 2 -c 2 --wait
 sudo protect zone list
 ```
+
+I understood the Edera daemon defaulted to ```--min-cpus``` and ```--max-cpus``` to **4**, which exceeded my 2 vCPU host limit.
+
+- ```--min-cpus 1``` drops the minimum requirement below the default of 4.
+- ```-C, --max-cpus 2``` overrides the default ceiling of 4 so it fits within our 2 physical CPUs.
+- ```-c, --target-cpus 2``` then sets the active target vCPU allocation to 2.
+
 To get more info about a specific Zone in YAML output:
 ```
 sudo protect zone list --output yaml | grep --color=always -E "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC|$"
