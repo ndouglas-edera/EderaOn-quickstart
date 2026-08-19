@@ -67,7 +67,7 @@ docker login -u license -p "$(cat /var/lib/edera/protect/license.key)" images.ed
 
 Before installing, run edera-check to confirm your system meets all requirements:
 ```
-docker run --pull always --pid host --privileged \
+sudo docker run --pull always --pid host --privileged \
   ghcr.io/edera-dev/edera-check:stable preinstall \
   | sed -e 's/\([Pp]assed\)/\x1b[32m\1\x1b[0m/g' -e 's/\([Ff]ailed\)/\x1b[31m\1\x1b[0m/g'
 ```
