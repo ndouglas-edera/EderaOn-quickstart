@@ -1,4 +1,4 @@
-# EderaOn-quickstart
+# EderaOn Quickstart
 This is an early onboarding repo to get everything for easy enablement
 
 I started off with an ```Ubuntu 26.04```. It has a public address and I can access it via SSH:
