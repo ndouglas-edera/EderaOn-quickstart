@@ -267,7 +267,6 @@ dmesg
 apk add dmidecode && dmidecode -t system
 dmidecode -t system
 ls -l /proc/xen
-ls -l /proc/xen
 apk add pciutils && lspci
 lspci
 ```
@@ -277,7 +276,11 @@ lspci
 - Likewise, **hardware memory abstraction** is seen through ```/dev/mem```. The ```dmidecode``` command failed with ```/dev/mem: Unexpected end of file```. Direct access to host physical memory addresses is blocked by the hypervisor layer.
 - There's also am **empty PCI Bus** as seen through the ```lspci``` command. Returning zero PCI devices proves the guest has no access to underlying physical host devices or host PCI pass-through.
 
-Type ```exit``` to leave the shell.
+Type ```exit``` to leave the shell. <br/>
+Try the below command on the host separately:
+```
+ls -l /proc/xen
+```
 
 #### Create long-lived workloads
 ```
