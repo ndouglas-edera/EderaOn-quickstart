@@ -43,16 +43,16 @@ aws configure set region eu-west-1
 The first tool you will need is Docker. If it's not on your VM by default, install it with the below script:
 ```
 wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/install-docker.sh
-chmod +x install_docker.sh
-./install_docker.sh
+chmod +x install-docker.sh
+./install-docker.sh
 ```
 
 Then, grab you license key under the "**My License**" section of the Edera onboarding page. <br/>
 Once grabbed, throw it into my custom validation script. This will check if you re using the right key:
 ```
 wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/setup-license.sh
-chmod +x setup_license.sh
-./setup_license.sh
+chmod +x setup-license.sh
+./setup-license.sh
 ```
 
 Check that you are using a valid Edera license key:
