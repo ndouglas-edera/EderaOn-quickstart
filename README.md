@@ -16,12 +16,9 @@ This is the **[EderaOn](on-edera.dev)** **EC2 instance installer**. You'll need 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/edera-dev/learn/refs/heads/main/getting-started/edera-on-installer/scripts/ec2-setup.sh)"
 ```
 
-If **[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)** is not found on your EC2 instance, you'll need to install it:
+If **[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)** is not found on your EC2 instance, you'll need to install it. I use **brew**:
 ```
-sudo apt update && sudo apt install -y unzip curl
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
+brew install awscli
 ```
 
 Check that it is installed successfully:
