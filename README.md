@@ -39,11 +39,45 @@ You also need to connect to your appropriate region (I'm based in Ireland - ```e
 aws configure set region eu-west-1
 ```
 
-## Creating an appropriate VM for EderaON
+## Installing Edera on your VM
+The first tool you will need is Docker. If it's not on your VM by default, install it with the below script:
+```
+https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/install-docker.sh
+chmod +x install_docker.sh
+./install_docker.sh
+```
 
-First, grab you license key under the "**My License**" section of the Edera onboarding page. <br/>
+Then, grab you license key under the "**My License**" section of the Edera onboarding page. <br/>
 Once grabbed, throw it into my custom validation script. This will check if you re using the right key:
 ```
 wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/setup-license.sh
+chmod +x setup_license.sh
+./setup_license.sh
 ```
+
+Check that you are using a valid Edera license key:
+```
+cat /var/lib/edera/protect/license.key
+```
+
+Authenticate Docker using the license file
+```
+docker login -u license -p "$(cat /var/lib/edera/protect/license.key)" images.edera.dev
+```
+
+Before installing, run edera-check to confirm your system meets all requirements:
+```
+docker run --pull always --pid host --privileged \
+  ghcr.io/edera-dev/edera-check:stable preinstall \
+  | sed -e 's/\([Pp]assed\)/\x1b[32m\1\x1b[0m/g' -e 's/\([Ff]ailed\)/\x1b[31m\1\x1b[0m/g'
+```
+All Required checks should pass. <br/>
+If anything fails, address the issue before proceeding. <br/>
+This should be treated as disposable infrastructure only. <br/>
+Edera modifies your bootloader and there is no automated uninstall process. <br/>
+Please, only install on instances or VMs you can actually terminate or recreate.
+```
+EDERA_LICENSE_KEY="$(cat /var/lib/edera/protect/license.key)" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/edera-dev/learn/main/getting-started/edera-on-installer/scripts/install.sh)" -- --verbose
+```
+Once the VM restarts, it will boot into the Edera hypervisor, and your Ubuntu VM will startup as an Edera-managed guest.
 
