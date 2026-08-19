@@ -65,7 +65,7 @@ Authenticate Docker using the license file
 docker login -u license -p "$(cat /var/lib/edera/protect/license.key)" images.edera.dev
 ```
 
-Before installing, run edera-check to confirm your system meets all requirements:
+Before installing, run **[edera-check](https://docs.edera.dev/reference/configuration/edera-check/)** to confirm your system meets all requirements:
 ```
 sudo docker run --pull always --pid host --privileged \
   ghcr.io/edera-dev/edera-check:stable preinstall \
@@ -75,6 +75,42 @@ sudo docker run --pull always --pid host --privileged \
 It's absolutely critical that you are using an EC2 instance with **UEFI bootloader** - or you'll fail on the below error:
 <img width="1655" height="1187" alt="Screenshot 2026-08-19 at 10 40 16" src="https://github.com/user-attachments/assets/d83869bc-67f6-4e7f-b0dd-54af30d65054" />
 
+## Pre-flight checks
+If the **edera-check** script work successfully, you can skip this section entirely. <br/>
+Start an interactive ```bash``` session:
+```
+bash
+```
+The quickest way to see both the architecture and the operating system is by running:
+```
+uname -a
+```
+This will print your system information in a single line, including:
+- Kernel name
+- Network node hostname
+- Kernel release date
+- Operating system
+- Machine architecture
+(for example: x86_64 or aarch64).
+
+To see the ```Architecture``` only:
+```
+uname -m
+```
+Alternatively, you can use lscpu to see full CPU details.
+<br/><br/>
+To see the Operating System details only:
+```
+cat /etc/os-release
+```
+If your system has ```systemd``` installed: <br/>
+(common on most modern VMs/servers)
+```
+hostnamectl
+```
+This gives you a beautifully formatted layout showing the OS, Kernel, and Architecture all at once.
+
+## Proceeding with the installation
 
 If you meet all the required checks, it should pass. <br/>
 If anything fails, address the issue before proceeding. <br/>
