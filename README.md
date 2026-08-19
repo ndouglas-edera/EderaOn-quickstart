@@ -36,6 +36,26 @@ You also need to connect to your appropriate region (I'm based in Ireland - ```e
 aws configure set region eu-west-1
 ```
 
+Here's the install command I've been using my for VMs. Obviously, use your own ```.pem``` file name and ```sg```:
+```
+aws ec2 run-instances \
+    --image-id ami-0c1c30571d2dae5c9 \
+    --instance-type m5.large \
+    --key-name nigel-edera \
+    --security-group-ids sg-08133b77c17ce95b9 \
+    --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":20,"VolumeType":"gp3"}}]' \
+    --region eu-west-1
+```
+
+To monitor the instance status and grab its public IP address, run:
+```
+aws ec2 describe-instances \
+    --region eu-west-1 \
+    --filters "Name=instance-state-name,Values=pending,running" \
+    --query "Reservations[*].Instances[*].{ID:InstanceId,State:State.Name,PublicIP:PublicIpAddress}" \
+    --output table
+```
+
 ## Installing Edera on your VM
 The first tool you will need is Docker. If it's not on your VM by default, install it with the below script:
 ```
