@@ -41,3 +41,9 @@ aws configure set region eu-west-1
 
 ## Creating an appropriate VM for EderaON
 
+First, grab you license key under the "**My License**" section of the Edera onboarding page. <br/>
+Once grabbed, throw it into my custom validation script. This will check if you re using the right key:
+```
+wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/setup-license.sh
+```
+
