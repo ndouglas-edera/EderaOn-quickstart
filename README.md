@@ -281,6 +281,14 @@ Try the below command on the host separately:
 ```
 ls -l /proc/xen
 ```
+This should show the full control capabilities (```privcmd```, ```xenbus```, and ```capabilities```).
+<br/><br/>
+-r--r--r-- 1 root root 0 Aug 19 10:21 capabilities<br/>
+-rw------- 1 root root 0 Aug 19 10:21 privcmd<br/>
+-rw------- 1 root root 0 Aug 19 10:21 xenbus<br/>
+-r-------- 1 root root 0 Aug 19 10:21 xensyms<br/>
+-rw------- 1 root root 0 Aug 19 10:21 xsd_kva<br/>
+-rw------- 1 root root 0 Aug 19 10:21 xsd_port<br/>
 
 #### Create long-lived workloads
 ```
