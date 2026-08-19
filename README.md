@@ -58,6 +58,14 @@ aws ec2 describe-instances \
     --output table
 ```
 
+You can then proceed to install with your ```pem``` file and correctly-listed public IP from the previous command:
+```
+ssh -i "nigel-edera.pem" ubuntu@<public-ip>
+```
+
+<img width="1060" height="1190" alt="Screenshot 2026-08-19 at 11 10 35" src="https://github.com/user-attachments/assets/639aa238-b121-49b5-9559-f96f8e361008" />
+
+
 ## Installing Edera on your VM
 The first tool you will need is Docker. If it's not on your VM by default, install it with the below script:
 ```
