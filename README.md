@@ -44,7 +44,7 @@ The first tool you will need is Docker. If it's not on your VM by default, insta
 ```
 wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/install-docker.sh
 chmod +x install-docker.sh
-./install-docker.sh
+sudo ./install-docker.sh
 ```
 
 Then, grab you license key under the "**My License**" section of the Edera onboarding page. <br/>
