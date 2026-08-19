@@ -11,7 +11,6 @@ fi
 
 echo "🔄 Updating package index and installing prerequisites (including nftables)..."
 apt-get update
-# Added nftables to the prerequisite installation list
 apt-get install -y ca-certificates curl gnupg nftables
 
 echo "🔑 Setting up Docker's official GPG key..."
@@ -31,4 +30,12 @@ apt-get update
 echo "🐳 Installing Docker Engine and plugins..."
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Ensure non-root user (e.g., ubuntu) is added to docker group
+TARGET_USER="${SUDO_USER:-$USER}"
+if [ "$TARGET_USER" != "root" ]; then
+  echo "👤 Adding $TARGET_USER to the docker group..."
+  usermod -aG docker "$TARGET_USER"
+fi
+
 echo "✅ Docker and nftables have been installed successfully!"
+echo "⚠️  Run 'newgrp docker' or re-log to apply group changes to your current shell session."
