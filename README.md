@@ -47,6 +47,8 @@ aws ec2 run-instances \
     --region eu-west-1
 ```
 
+To exit the page Press ```q``` on your keyboard to quit the JSON view and return to your command prompt.
+<br/><br/>
 To monitor the instance status and grab its public IP address, run:
 ```
 aws ec2 describe-instances \
