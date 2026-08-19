@@ -42,7 +42,7 @@ aws configure set region eu-west-1
 ## Installing Edera on your VM
 The first tool you will need is Docker. If it's not on your VM by default, install it with the below script:
 ```
-https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/install-docker.sh
+wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/install-docker.sh
 chmod +x install_docker.sh
 ./install_docker.sh
 ```
