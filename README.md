@@ -265,6 +265,10 @@ Run the below commands from inside the same workload:
 ps aux
 dmesg
 apk add dmidecode && dmidecode -t system
+dmidecode -t system
+ls -l /proc/xen
+ls -l /proc/xen
+apk add pciutils && lspci
 lspci
 ```
 
