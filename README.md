@@ -147,5 +147,9 @@ Please, only install on instances or VMs you can actually terminate or recreate.
 ```
 EDERA_LICENSE_KEY="$(cat /var/lib/edera/protect/license.key)" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/edera-dev/learn/main/getting-started/edera-on-installer/scripts/install.sh)" -- --verbose
 ```
+
+<img width="1656" height="1190" alt="Screenshot 2026-08-19 at 11 22 34" src="https://github.com/user-attachments/assets/e3488a24-2301-4c13-bb4e-b6214b54b4e9" />
+
+
 Once the VM restarts, it will boot into the Edera hypervisor, and your Ubuntu VM will startup as an Edera-managed guest.
 
