@@ -215,7 +215,7 @@ Launching a zone typically takes less than a minute.<br/>
 If it takes longer, check logs with:
 ```sudo journalctl -u protect-daemon -n 50```
 ```
-sudo protect zone launch -n test-zone --wait
+sudo protect zone launch -n test-zone --min-cpus 1 -C 2 -c 2 --wait
 sudo protect zone list
 ```
 To get more info about a specific Zone in YAML output:
