@@ -215,12 +215,12 @@ Launching a zone typically takes less than a minute.<br/>
 If it takes longer, check logs with:
 ```sudo journalctl -u protect-daemon -n 50```
 ```
-protect zone launch -n test-zone --wait
-protect zone list
+sudo protect zone launch -n test-zone --wait
+sudo protect zone list
 ```
 To get more info about a specific Zone in YAML output:
 ```
-protect zone list --output yaml | grep --color=always -E "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC|$"
+sudo protect zone list --output yaml | grep --color=always -E "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC|$"
 ```
 A zone in ```ready``` state is running and available.<br/>
 If not, check the logs to see why the activation failed:
@@ -232,12 +232,12 @@ journalctl -u protect-daemon -n 20 | sed \
 **Optional:** Destroy the zone when you are done.<br/>
 This releases the lock on the image files so that they can be reused:
 ```
-protect zone destroy test-zone
+sudo protect zone destroy test-zone
 ```
 ## Run a workload
 Launch an interactive shell inside the zone:
 ```
-protect workload launch \
+sudo protect workload launch \
   --zone test-zone \
   --name alpine-shell \
   -t -a \
@@ -257,15 +257,15 @@ Type ```exit``` to leave the shell.
 
 #### Create long-lived workloads
 ```
-protect workload launch --zone test-zone --name alpine-long -- docker.io/library/alpine:latest sleep 3600
-protect workload launch --zone test-zone --name ubuntu-test docker.io/library/ubuntu:latest sleep 10
+sudo protect workload launch --zone test-zone --name alpine-long -- docker.io/library/alpine:latest sleep 3600
+sudo protect workload launch --zone test-zone --name ubuntu-test docker.io/library/ubuntu:latest sleep 10
 ```
 Check that the workload is running:
 ```
-protect workload list
-protect zone list
+sudo protect workload list
+sudo protect zone list
 ```
 List the ```yaml``` output information associated with running workloads:
 ```
-protect workload list --output yaml
+sudo protect workload list --output yaml
 ```
