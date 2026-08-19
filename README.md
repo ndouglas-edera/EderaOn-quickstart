@@ -207,7 +207,7 @@ The daemon should become ```active``` within seconds.<br/>
 If everything is active, you can proceed with the lab.
 <br/><br/>
 If it stays in ```activating```, it failed to start.<br/>
-A missing or invalid license key is a common cause.
+A missing or invalid license key is a common cause.<br/>
 Check logs with sudo ```journalctl -u protect-daemon -n 50```.
 
 ## Launch a zone
