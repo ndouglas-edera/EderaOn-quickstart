@@ -150,10 +150,122 @@ EDERA_LICENSE_KEY="$(cat /var/lib/edera/protect/license.key)" /bin/bash -c "$(cu
 
 <img width="1656" height="1190" alt="Screenshot 2026-08-19 at 11 22 34" src="https://github.com/user-attachments/assets/e3488a24-2301-4c13-bb4e-b6214b54b4e9" />
 
-
+NOTE: You cannot interact with the terminal during reboot. <br/>
 Once the VM restarts, it will boot into the Edera hypervisor, and your Ubuntu VM will startup as an Edera-managed guest. <br/>
 You'll need to shell back into your EC2 instance to start playing around with Edera:
 ```
 ssh -i "nigel-edera.pem" ubuntu@52.17.147.191
 ```
 
+
+## Getting Started with EderaON
+
+Run the ```uname``` command to verify that you are running the custom Edera kernel generated during the installation process: ```Edera/Xen``` kernel
+```
+uname -r | grep 'edera'
+```
+Expected: ```6.x.y-edera```
+<br/><br/>
+Verify the services are running:
+```
+ps auxww | grep protect
+```
+#### systemd-detect-virt
+This utility checks the **[CPUID](https://en.wikipedia.org/wiki/CPUID)** and system interfaces to see if the environment is virtualised:
+```
+systemd-detect-virt | grep -E 'kvm'
+```
+Edera zones currently run on a **[Xen](https://edera.dev/stories/why-edera-built-on-xen-a-secure-container-foundation)** Hypervisor. Starting recently, the same zone-based isolation will also run on **[KVM](https://docs.edera.dev/technical-overview/architecture/kvm/)** (Kernel-based Virtual Machines), preserving identical security guarantees while meeting teams where their infrastructure already is.
+
+#### Check dmesg for Hypervisor boot logs:
+Inspect the ring buffer to see hypervisor handoff messages:
+```
+dmesg | grep -iE "hypervisor|xen|edera"
+```
+Look for boot lines indicating kernel is booting as guest <br/>
+(like ```booting paravirtualised kernel on Xen``` or ```hvc0``` devices).
+
+#### Check the "Edera Protect" systemd services
+The installer enabled several Edera management daemons.
+```
+systemctl status protect-daemon protect-network
+```
+Confirm ```Xen``` is present
+```
+ls /proc/xen
+```
+Expected: ```capabilities  privcmd  xenbus```
+
+Check the daemon is running:
+```
+systemctl is-active protect-daemon | grep --color=always -E "active|$"
+```
+Expected: ```active```
+<br/><br/>
+```activating``` is not the same as ```active```.<br/>
+The daemon should become ```active``` within seconds.<br/>
+If everything is active, you can proceed with the lab.
+<br/><br/>
+If it stays in ```activating```, it failed to start.<br/>
+A missing or invalid license key is a common cause.
+Check logs with sudo ```journalctl -u protect-daemon -n 50```.
+
+## Launch a zone
+Launching a zone typically takes less than a minute.
+If it takes longer, check logs in Terminal 2 with:
+```sudo journalctl -u protect-daemon -n 50```
+```
+protect zone launch -n test-zone --wait
+protect zone list
+```
+To get more info about a specific Zone in YAML output:
+```
+protect zone list --output yaml | grep --color=always -E "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC|$"
+```
+A zone in ```ready``` state is running and available.<br/>
+If not, check the logs to see why the activation failed:
+```
+journalctl -u protect-daemon -n 20 | sed \
+  -e 's/\bINFO\b/\x1b[32m&\x1b[0m/g' \
+  -e 's/\bWARN\b/\x1b[31m&\x1b[0m/g'
+```
+**Optional:** Destroy the zone when you are done.<br/>
+This releases the lock on the image files so that they can be reused:
+```
+protect zone destroy test-zone
+```
+## Run a workload
+Launch an interactive shell inside the zone:
+```
+protect workload launch \
+  --zone test-zone \
+  --name alpine-shell \
+  -t -a \
+  docker.io/library/alpine:latest sh
+```
+Once inside, run ```uname -r``` to confirm you’re running in an isolated zone with its own kernel:
+```
+uname -r
+```
+The ```6.18.XX``` output from ```uname -r``` is the version of the dedicated zone kernel that Edera booted specifically for your ```test-zone```.
+
+- Exiting the container and running ```uname -r``` again should show ```6.18.XX-edera``` - proving the container is not on the shared kernel
+- In a traditional container, running ```uname -r``` inside a container simply returns the host's kernel version, because all containers share a single host kernel.
+- The output confirms that ```6.18.XX``` is not your host's shared kernel, but a completely isolated kernel running inside a **Type-1 hypervisor microVM**.
+
+Type ```exit``` to leave the shell.
+
+#### Create long-lived workloads
+```
+protect workload launch --zone test-zone --name alpine-long -- docker.io/library/alpine:latest sleep 3600
+protect workload launch --zone test-zone --name ubuntu-test docker.io/library/ubuntu:latest sleep 10
+```
+Check that the workload is running:
+```
+protect workload list
+protect zone list
+```
+List the ```yaml``` output information associated with running workloads:
+```
+protect workload list --output yaml
+```
