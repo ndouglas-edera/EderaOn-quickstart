@@ -211,8 +211,8 @@ A missing or invalid license key is a common cause.
 Check logs with sudo ```journalctl -u protect-daemon -n 50```.
 
 ## Launch a zone
-Launching a zone typically takes less than a minute.
-If it takes longer, check logs in Terminal 2 with:
+Launching a zone typically takes less than a minute.<br/>
+If it takes longer, check logs with:
 ```sudo journalctl -u protect-daemon -n 50```
 ```
 protect zone launch -n test-zone --wait
