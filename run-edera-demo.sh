@@ -12,19 +12,27 @@ NC='\033[0m' # No Color
 ZONE_NAME="test-zone"
 WORKLOAD_NAME="alpine-shell"
 
+# Dedicated cleanup function
+cleanup() {
+    echo -e "\n${YELLOW}🧹 Cleaning up zone '${ZONE_NAME}' and tombstones...${NC}"
+    sudo protect zone destroy "${ZONE_NAME}" --all >/dev/null 2>&1 || true
+    
+    # Forget any remaining tombstones
+    EXISTING_UUIDS=$(sudo protect zone list --output json 2>/dev/null | grep -B 2 "\"name\": \"${ZONE_NAME}\"" | grep "\"uuid\"" | cut -d '"' -f 4 || true)
+    for uuid in $EXISTING_UUIDS; do
+        sudo protect zone forget "${uuid}" >/dev/null 2>&1 || true
+    done
+}
+
+# Register signal trap to ensure cleanup runs on normal exit or Ctrl+C
+trap cleanup EXIT INT TERM
+
 echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}  Edera MicroVM Isolation & Security Verification  ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
 
-# 1. Clean up existing zone instances/tombstones
-echo -e "${YELLOW}🧹 Checking for existing '${ZONE_NAME}' instances...${NC}"
-EXISTING_UUIDS=$(sudo protect zone list --output json 2>/dev/null | grep -B 2 "\"name\": \"${ZONE_NAME}\"" | grep "\"uuid\"" | cut -d '"' -f 4 || true)
-
-for uuid in $EXISTING_UUIDS; do
-    echo -e "Removing old zone/tombstone: ${uuid}"
-    sudo protect zone destroy "${uuid}" >/dev/null 2>&1 || true
-    sudo protect zone forget "${uuid}" >/dev/null 2>&1 || true
-done
+# 1. Ensure a clean slate prior to launch
+cleanup
 
 # 2. Launch Edera Zone
 echo -e "\n${YELLOW}🚀 Launching Edera Zone: ${ZONE_NAME}...${NC}"
@@ -36,7 +44,7 @@ fi
 echo -e "\n${YELLOW}📋 Current Zone Status:${NC}"
 sudo protect zone list
 
-# 3. Define internal guest payload with simulated typing & pauses
+# 3. Define internal guest payload with typing effect and pauses
 GUEST_PAYLOAD=$(cat << 'EOF'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -86,7 +94,7 @@ sleep 1.2
 type_prompt "ps aux"
 ps aux
 sleep 0.5
-echo -e "${GREEN}[Edera Protection Verified] PID 1 is 'sh'. Host process tree is completely invisible.${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] PID 1 is 'sh'. Host process tree is completely isolated.${NC}\n"
 sleep 1.2
 
 # --- STEP 3: Kernel Telemetry / Ring Buffer ---
