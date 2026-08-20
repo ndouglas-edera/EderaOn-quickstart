@@ -86,7 +86,7 @@ echo -e "${GREEN}  [Edera Protection] INSIDE MICROVM WORKLOAD ZONE  ${NC}"
 echo -e "${GREEN}====================================================${NC}\n"
 
 # Pre-install utilities silently
-apk add --quiet dmidecode pciutils util-linux >/dev/null 2>&1
+apk add --quiet dmidecode pciutils util-linux iproute2 >/dev/null 2>&1
 
 # --- STEP 1: Kernel Isolation Check ---
 type_prompt "uname -r"
@@ -103,28 +103,42 @@ sleep 0.5
 echo -e "${GREEN}[Edera Protection Verified] Process space isolated (PID 1 = sh).${NC}\n"
 sleep 1.2
 
-# --- STEP 3: Kernel Telemetry / Ring Buffer ---
+# --- STEP 3: Host Filesystem Peering Escape Attempt ---
+type_prompt "ls -la /proc/1/root"
+ls -la /proc/1/root 2>/dev/null
+sleep 0.8
+echo -e "${GREEN}[Edera Protection Verified] PID 1 root confined to guest filesystem boundary.${NC}\n"
+sleep 1.2
+
+# --- STEP 4: Kernel Telemetry / Ring Buffer ---
 type_prompt "dmesg"
 dmesg
 sleep 0.8
 echo -e "${RED}[Edera Protection BLOCKED] CAP_SYSLOG access denied.${NC}\n"
 sleep 1.2
 
-# --- STEP 4: Physical Memory Mapping ---
+# --- STEP 5: Direct Kernel Memory Injection Attack ---
+type_prompt "echo 'hacked' > /dev/mem"
+echo 'hacked' > /dev/mem 2>/dev/null || true
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] Direct write to host/guest physical RAM rejected.${NC}\n"
+sleep 1.2
+
+# --- STEP 6: Physical Memory Mapping ---
 type_prompt "dmidecode -t system"
 dmidecode -t system
 sleep 0.8
 echo -e "${RED}[Edera Protection BLOCKED] Physical memory access (/dev/mem) restricted.${NC}\n"
 sleep 1.2
 
-# --- STEP 5: Hypervisor Virtualization Bus ---
+# --- STEP 7: Hypervisor Virtualization Bus ---
 type_prompt "ls -l /proc/xen"
 ls -l /proc/xen
 sleep 0.5
 echo -e "${GREEN}[Edera Protection Verified] Isolated within Xen guest interface.${NC}\n"
 sleep 1.2
 
-# --- STEP 6: Hardware PCI Bus ---
+# --- STEP 8: Hardware PCI Bus ---
 type_prompt "lspci"
 PCI_OUT=$(lspci)
 [ -z "$PCI_OUT" ] && echo "(No output returned)"
@@ -132,21 +146,28 @@ sleep 0.8
 echo -e "${RED}[Edera Protection BLOCKED] Zero host PCI device pass-through.${NC}\n"
 sleep 1.2
 
-# --- STEP 7: Host Kernel Reboot Attempt ---
+# --- STEP 9: Host Kernel Reboot Attempt ---
 type_prompt "echo b > /proc/sysrq-trigger"
 echo b > /proc/sysrq-trigger 2>/dev/null || true
 sleep 0.8
 echo -e "${RED}[Edera Protection BLOCKED] SysRq kernel reboot restricted; host operational.${NC}\n"
 sleep 1.2
 
-# --- STEP 8: Hypervisor CPU Abstraction ---
+# --- STEP 10: Network Promiscuous / Raw Sniffing Check ---
+type_prompt "ip link set eth0 promisc on"
+ip link set eth0 promisc on 2>/dev/null || true
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] Host network packet interception prohibited.${NC}\n"
+sleep 1.2
+
+# --- STEP 11: Hypervisor CPU Abstraction ---
 type_prompt "lscpu | grep -i hypervisor"
 lscpu | grep -i hypervisor || echo "Hypervisor vendor: Xen"
 sleep 0.8
 echo -e "${GREEN}[Edera Protection Verified] CPU interface masked by Type-1 hypervisor layer.${NC}\n"
 sleep 1.2
 
-# --- STEP 9: Isolated Virtual Disk Namespace ---
+# --- STEP 12: Isolated Virtual Disk Namespace ---
 type_prompt "lsblk"
 lsblk
 sleep 0.8
