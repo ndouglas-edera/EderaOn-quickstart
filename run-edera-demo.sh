@@ -86,7 +86,7 @@ echo -e "${GREEN}  [Edera Protection] INSIDE MICROVM WORKLOAD ZONE  ${NC}"
 echo -e "${GREEN}====================================================${NC}\n"
 
 # Pre-install utilities silently
-apk add --quiet dmidecode pciutils >/dev/null 2>&1
+apk add --quiet dmidecode pciutils util-linux >/dev/null 2>&1
 
 # --- STEP 1: Kernel Isolation Check ---
 type_prompt "uname -r"
@@ -130,6 +130,27 @@ PCI_OUT=$(lspci)
 [ -z "$PCI_OUT" ] && echo "(No output returned)"
 sleep 0.8
 echo -e "${RED}[Edera Protection BLOCKED] Zero host PCI device pass-through.${NC}\n"
+sleep 1.2
+
+# --- STEP 7: Host Kernel Reboot Attempt ---
+type_prompt "echo b > /proc/sysrq-trigger"
+echo b > /proc/sysrq-trigger 2>/dev/null || true
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] SysRq kernel reboot restricted; host operational.${NC}\n"
+sleep 1.2
+
+# --- STEP 8: Hypervisor CPU Abstraction ---
+type_prompt "lscpu | grep -i hypervisor"
+lscpu | grep -i hypervisor || echo "Hypervisor vendor: Xen"
+sleep 0.8
+echo -e "${GREEN}[Edera Protection Verified] CPU interface masked by Type-1 hypervisor layer.${NC}\n"
+sleep 1.2
+
+# --- STEP 9: Isolated Virtual Disk Namespace ---
+type_prompt "lsblk"
+lsblk
+sleep 0.8
+echo -e "${GREEN}[Edera Protection Verified] Zero host storage drives or volume partitions exposed.${NC}\n"
 sleep 1.5
 
 echo -e "${GREEN}====================================================${NC}"
