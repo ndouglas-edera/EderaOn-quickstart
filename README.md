@@ -290,6 +290,13 @@ This should show the full control capabilities (```privcmd```, ```xenbus```, and
 -rw------- 1 root root 0 Aug 19 10:21 xsd_kva<br/>
 -rw------- 1 root root 0 Aug 19 10:21 xsd_port<br/>
 
+#### Edera automated script
+```
+wget https://raw.githubusercontent.com/ndouglas-edera/EderaOn-quickstart/refs/heads/main/run-edera-demo.sh
+chmod +x run-edera-demo.sh
+./run-edera-demo.sh
+```
+
 #### Create long-lived workloads
 ```
 sudo protect workload launch --zone test-zone --name alpine-long -- docker.io/library/alpine:latest sleep 3600
