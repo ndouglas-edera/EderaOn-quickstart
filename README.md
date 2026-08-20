@@ -314,3 +314,10 @@ List the ```yaml``` output information associated with running workloads:
 ```
 sudo protect workload list --output yaml
 ```
+
+Reload services:
+```
+sudo systemctl daemon-reload
+sudo systemctl restart protect-cri
+
+```
