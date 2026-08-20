@@ -12,26 +12,27 @@ NC='\033[0m' # No Color
 ZONE_NAME="test-zone"
 WORKLOAD_NAME="alpine-shell"
 
-# Dedicated cleanup function
+# Robust cleanup function
 cleanup() {
-    echo -e "\n${YELLOW}🧹 Cleaning up zone '${ZONE_NAME}' and tombstones...${NC}"
+    echo -e "\n${YELLOW}🧹 Destroying active zones and clearing tombstones for '${ZONE_NAME}'...${NC}"
+    # Destroy any running instances
     sudo protect zone destroy "${ZONE_NAME}" --all >/dev/null 2>&1 || true
     
-    # Forget any remaining tombstones
-    EXISTING_UUIDS=$(sudo protect zone list --output json 2>/dev/null | grep -B 2 "\"name\": \"${ZONE_NAME}\"" | grep "\"uuid\"" | cut -d '"' -f 4 || true)
-    for uuid in $EXISTING_UUIDS; do
+    # Extract ALL matching UUIDs (ready or destroyed) and forget them individually
+    ALL_UUIDS=$(sudo protect zone list --output json 2>/dev/null | grep -B 2 "\"name\": \"${ZONE_NAME}\"" | grep "\"uuid\"" | cut -d '"' -f 4 || true)
+    for uuid in $ALL_UUIDS; do
         sudo protect zone forget "${uuid}" >/dev/null 2>&1 || true
     done
 }
 
-# Register signal trap to ensure cleanup runs on normal exit or Ctrl+C
+# Trap signals for automatic teardown on exit or Ctrl+C
 trap cleanup EXIT INT TERM
 
 echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}  Edera MicroVM Isolation & Security Verification  ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
 
-# 1. Ensure a clean slate prior to launch
+# 1. Clear any pre-existing instances or tombstones
 cleanup
 
 # 2. Launch Edera Zone
@@ -44,7 +45,7 @@ fi
 echo -e "\n${YELLOW}📋 Current Zone Status:${NC}"
 sudo protect zone list
 
-# 3. Define internal guest payload with typing effect and pauses
+# 3. Define guest payload with hacker-style typing effect & delays
 GUEST_PAYLOAD=$(cat << 'EOF'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -79,7 +80,7 @@ echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}  [Edera Protection] INSIDE MICROVM WORKLOAD ZONE  ${NC}"
 echo -e "${GREEN}====================================================${NC}\n"
 
-# Pre-install tools silently so setup logs don't interrupt demo flow
+# Pre-install utilities silently
 apk add --quiet dmidecode pciutils >/dev/null 2>&1
 
 # --- STEP 1: Kernel Isolation Check ---
