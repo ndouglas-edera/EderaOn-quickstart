@@ -12,40 +12,50 @@ NC='\033[0m' # No Color
 ZONE_NAME="test-zone"
 WORKLOAD_NAME="alpine-shell"
 
-# Robust cleanup function
+# Robust cleanup using jq/sed/awk-friendly extraction
 cleanup() {
-    echo -e "\n${YELLOW}🧹 Destroying active zones and clearing tombstones for '${ZONE_NAME}'...${NC}"
-    # Destroy any running instances
+    echo -e "\n${YELLOW}🧹 Destroying active zones and purging tombstones for '${ZONE_NAME}'...${NC}"
+    # Destroy active zones
     sudo protect zone destroy "${ZONE_NAME}" --all >/dev/null 2>&1 || true
+
+    # Extract raw 36-character UUID strings matching test-zone across list output
+    UUID_LIST=$(sudo protect zone list 2>/dev/null | grep "${ZONE_NAME}" | awk '{print $3}' | grep -E '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' || true)
     
-    # Extract ALL matching UUIDs (ready or destroyed) and forget them individually
-    ALL_UUIDS=$(sudo protect zone list --output json 2>/dev/null | grep -B 2 "\"name\": \"${ZONE_NAME}\"" | grep "\"uuid\"" | cut -d '"' -f 4 || true)
-    for uuid in $ALL_UUIDS; do
+    # Fallback JSON parsing if table structure differs
+    if [ -z "$UUID_LIST" ]; then
+        UUID_LIST=$(sudo protect zone list --output json 2>/dev/null | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' || true)
+    fi
+
+    for uuid in $UUID_LIST; do
         sudo protect zone forget "${uuid}" >/dev/null 2>&1 || true
     done
 }
 
-# Trap signals for automatic teardown on exit or Ctrl+C
+# Trap signals for automatic teardown
 trap cleanup EXIT INT TERM
 
 echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}  Edera MicroVM Isolation & Security Verification  ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
 
-# 1. Clear any pre-existing instances or tombstones
+# 1. Clean up lingering tombstones
 cleanup
 
-# 2. Launch Edera Zone
+# 2. Launch Edera Zone and capture its unique UUID directly
 echo -e "\n${YELLOW}🚀 Launching Edera Zone: ${ZONE_NAME}...${NC}"
-if ! sudo protect zone launch -n "${ZONE_NAME}" --min-cpus 1 -C 2 -c 2 --wait; then
-    echo -e "\n${RED}❌ Zone launch failed. Aborting.${NC}"
+NEW_ZONE_UUID=$(sudo protect zone launch -n "${ZONE_NAME}" --min-cpus 1 -C 2 -c 2 --wait 2>&1 | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | tail -n 1)
+
+if [ -z "$NEW_ZONE_UUID" ]; then
+    echo -e "\n${RED}❌ Zone launch failed or failed to parse UUID. Aborting.${NC}"
     exit 1
 fi
+
+echo -e "Created Zone UUID: ${CYAN}${NEW_ZONE_UUID}${NC}"
 
 echo -e "\n${YELLOW}📋 Current Zone Status:${NC}"
 sudo protect zone list
 
-# 3. Define guest payload with hacker-style typing effect & delays
+# 3. Define guest payload script
 GUEST_PAYLOAD=$(cat << 'EOF'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -54,7 +64,6 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Typewriter effect function
 typewriter() {
     msg="$1"
     delay="${2:-0.03}"
@@ -67,7 +76,6 @@ typewriter() {
     echo ""
 }
 
-# Simulated shell prompt
 type_prompt() {
     cmd="$1"
     printf "${BOLD}alpine-zone:~# ${NC}"
@@ -80,53 +88,50 @@ echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}  [Edera Protection] INSIDE MICROVM WORKLOAD ZONE  ${NC}"
 echo -e "${GREEN}====================================================${NC}\n"
 
-# Pre-install utilities silently
 apk add --quiet dmidecode pciutils >/dev/null 2>&1
 
-# --- STEP 1: Kernel Isolation Check ---
+# STEP 1: Kernel Check
 type_prompt "uname -r"
 uname -r
 sleep 0.5
 ZONE_KERNEL=$(uname -r)
-echo -e "${GREEN}[Edera Protection Verified] Workload is running on a dedicated microVM kernel (${ZONE_KERNEL}).${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] Dedicated microVM kernel (${ZONE_KERNEL}) confirmed.${NC}\n"
 sleep 1.2
 
-# --- STEP 2: Process Space Isolation ---
+# STEP 2: Process Isolation
 type_prompt "ps aux"
 ps aux
 sleep 0.5
-echo -e "${GREEN}[Edera Protection Verified] PID 1 is 'sh'. Host process tree is completely isolated.${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] Process space isolated (PID 1 = sh).${NC}\n"
 sleep 1.2
 
-# --- STEP 3: Kernel Telemetry / Ring Buffer ---
+# STEP 3: Telemetry Access
 type_prompt "dmesg"
 dmesg
 sleep 0.8
-echo -e "${RED}[Edera Protection BLOCKED] Access Denied: CAP_SYSLOG / kernel ring-buffer access is prohibited.${NC}\n"
+echo -e "${RED}[Edera Protection BLOCKED] CAP_SYSLOG access denied.${NC}\n"
 sleep 1.2
 
-# --- STEP 4: Physical Memory Mapping ---
+# STEP 4: Memory Mapping
 type_prompt "dmidecode -t system"
 dmidecode -t system
 sleep 0.8
-echo -e "${RED}[Edera Protection BLOCKED] Access Denied: Hypervisor restricts direct physical memory (/dev/mem) access.${NC}\n"
+echo -e "${RED}[Edera Protection BLOCKED] Physical memory access (/dev/mem) restricted.${NC}\n"
 sleep 1.2
 
-# --- STEP 5: Hypervisor Virtualization Bus ---
+# STEP 5: Virtualization Bus
 type_prompt "ls -l /proc/xen"
 ls -l /proc/xen
 sleep 0.5
-echo -e "${GREEN}[Edera Protection Verified] Workload is bounded inside a Xen guest virtualization interface.${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] Isolated within Xen guest interface.${NC}\n"
 sleep 1.2
 
-# --- STEP 6: Hardware PCI Bus ---
+# STEP 6: PCI Bus
 type_prompt "lspci"
 PCI_OUT=$(lspci)
-if [ -z "$PCI_OUT" ]; then
-    echo "(No output returned)"
-fi
+[ -z "$PCI_OUT" ] && echo "(No output returned)"
 sleep 0.8
-echo -e "${RED}[Edera Protection BLOCKED] Empty PCI Bus: Zero pass-through access to physical host PCI hardware.${NC}\n"
+echo -e "${RED}[Edera Protection BLOCKED] Zero host PCI device pass-through.${NC}\n"
 sleep 1.5
 
 echo -e "${GREEN}====================================================${NC}"
@@ -138,15 +143,15 @@ exec sh
 EOF
 )
 
-# 4. Launch Workload inside Zone
-echo -e "\n${YELLOW}🐳 Launching Alpine workload inside ${ZONE_NAME}...${NC}\n"
+# 4. Launch Workload using the explicit NEW_ZONE_UUID instead of name
+echo -e "\n${YELLOW}🐳 Launching Alpine workload inside Zone UUID: ${NEW_ZONE_UUID}...${NC}\n"
 sudo protect workload launch \
-  --zone "${ZONE_NAME}" \
+  --zone "${NEW_ZONE_UUID}" \
   --name "${WORKLOAD_NAME}" \
   -t -a \
   docker.io/library/alpine:latest sh -c "$GUEST_PAYLOAD"
 
-# 5. Host-side Comparison after exit
+# 5. Host comparison
 echo -e "\n${BLUE}====================================================${NC}"
 echo -e "${BLUE}  [Edera Protection] BACK ON HOST SYSTEM            ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
