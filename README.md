@@ -297,6 +297,9 @@ chmod +x run-edera-demo.sh
 ./run-edera-demo.sh
 ```
 
+<img width="1507" height="1166" alt="Screenshot 2026-08-20 at 10 44 28" src="https://github.com/user-attachments/assets/521aaf54-2bb3-42c3-a8bb-f4eb398a8e6c" />
+
+
 #### Create long-lived workloads
 ```
 sudo protect workload launch --zone test-zone --name alpine-long -- docker.io/library/alpine:latest sleep 3600
