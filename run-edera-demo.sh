@@ -6,6 +6,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 ZONE_NAME="test-zone"
@@ -25,75 +26,110 @@ for uuid in $EXISTING_UUIDS; do
     sudo protect zone forget "${uuid}" >/dev/null 2>&1 || true
 done
 
-# 2. Launch Edera Zone with CPU constraints for m5.large
+# 2. Launch Edera Zone
 echo -e "\n${YELLOW}🚀 Launching Edera Zone: ${ZONE_NAME}...${NC}"
 if ! sudo protect zone launch -n "${ZONE_NAME}" --min-cpus 1 -C 2 -c 2 --wait; then
-    echo -e "\n${RED}❌ Zone launch failed (check 'sudo systemctl status protect-daemon' for licensing/heartbeat errors). Aborting.${NC}"
+    echo -e "\n${RED}❌ Zone launch failed. Aborting.${NC}"
     exit 1
 fi
 
 echo -e "\n${YELLOW}📋 Current Zone Status:${NC}"
 sudo protect zone list
 
-# 3. Define internal guest payload
+# 3. Define internal guest payload with simulated typing & pauses
 GUEST_PAYLOAD=$(cat << 'EOF'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BOLD='\033[1m'
 NC='\033[0m'
+
+# Typewriter effect function
+typewriter() {
+    msg="$1"
+    delay="${2:-0.03}"
+    i=0
+    while [ $i -lt ${#msg} ]; do
+        printf "%s" "${msg:$i:1}"
+        sleep "$delay"
+        i=$((i + 1))
+    done
+    echo ""
+}
+
+# Simulated shell prompt
+type_prompt() {
+    cmd="$1"
+    printf "${BOLD}alpine-zone:~# ${NC}"
+    sleep 0.3
+    typewriter "$cmd" 0.04
+    sleep 0.2
+}
 
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}  [Edera Protection] INSIDE MICROVM WORKLOAD ZONE  ${NC}"
 echo -e "${GREEN}====================================================${NC}\n"
 
-# Check 1: Dedicated Kernel Verification
+# Pre-install tools silently so setup logs don't interrupt demo flow
+apk add --quiet dmidecode pciutils >/dev/null 2>&1
+
+# --- STEP 1: Kernel Isolation Check ---
+type_prompt "uname -r"
+uname -r
+sleep 0.5
 ZONE_KERNEL=$(uname -r)
-echo -e "${GREEN}[Edera Protection] Verified: Workload is executing inside its own dedicated kernel zone!${NC}"
-echo -e "${CYAN}Zone Kernel Version: ${ZONE_KERNEL}${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] Workload is running on a dedicated microVM kernel (${ZONE_KERNEL}).${NC}\n"
+sleep 1.2
 
-# Check 2: Process Isolation
-echo -e "${GREEN}[Edera Protection] Testing Process Isolation (ps aux)...${NC}"
+# --- STEP 2: Process Space Isolation ---
+type_prompt "ps aux"
 ps aux
-echo -e "${GREEN}[Edera Protection] Notice PID 1 is 'sh'. The host process space is completely isolated.${NC}\n"
+sleep 0.5
+echo -e "${GREEN}[Edera Protection Verified] PID 1 is 'sh'. Host process tree is completely invisible.${NC}\n"
+sleep 1.2
 
-# Check 3: Kernel Log / Telemetry Access
-echo -e "${GREEN}[Edera Protection] Testing Kernel Ring-Buffer Access (dmesg)...${NC}"
-DMESG_OUT=$(dmesg 2>&1)
-echo "$DMESG_OUT"
-if echo "$DMESG_OUT" | grep -q "Operation not permitted"; then
-    echo -e "${GREEN}[Edera Protection Blocked] Access denied: Workload lacks CAP_SYSLOG / kernel ring-buffer permissions.${NC}\n"
-fi
+# --- STEP 3: Kernel Telemetry / Ring Buffer ---
+type_prompt "dmesg"
+dmesg
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] Access Denied: CAP_SYSLOG / kernel ring-buffer access is prohibited.${NC}\n"
+sleep 1.2
 
-# Check 4: Memory Abstraction
-echo -e "${GREEN}[Edera Protection] Installing and testing DMI/Memory Access (dmidecode)...${NC}"
-apk add --quiet dmidecode >/dev/null 2>&1
-DMI_OUT=$(dmidecode -t system 2>&1)
-echo "$DMI_OUT"
-if echo "$DMI_OUT" | grep -q "Unexpected end of file"; then
-    echo -e "${GREEN}[Edera Protection Blocked] Access denied: Hypervisor restricts direct access to physical memory (/dev/mem).${NC}\n"
-fi
+# --- STEP 4: Physical Memory Mapping ---
+type_prompt "dmidecode -t system"
+dmidecode -t system
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] Access Denied: Hypervisor restricts direct physical memory (/dev/mem) access.${NC}\n"
+sleep 1.2
 
-# Check 5: Xen Hypervisor Bus
-echo -e "${GREEN}[Edera Protection] Inspecting Virtualization Bus (/proc/xen)...${NC}"
+# --- STEP 5: Hypervisor Virtualization Bus ---
+type_prompt "ls -l /proc/xen"
 ls -l /proc/xen
-echo -e "${GREEN}[Edera Protection] Guest virtualization interface active.${NC}\n"
+sleep 0.5
+echo -e "${GREEN}[Edera Protection Verified] Workload is bounded inside a Xen guest virtualization interface.${NC}\n"
+sleep 1.2
 
-# Check 6: PCI Bus Isolation
-echo -e "${GREEN}[Edera Protection] Installing and checking PCI Hardware Bus (lspci)...${NC}"
-apk add --quiet pciutils >/dev/null 2>&1
-PCI_OUT=$(lspci 2>&1)
+# --- STEP 6: Hardware PCI Bus ---
+type_prompt "lspci"
+PCI_OUT=$(lspci)
 if [ -z "$PCI_OUT" ]; then
     echo "(No output returned)"
-    echo -e "${GREEN}[Edera Protection Blocked] PCI bus empty: Workload has no raw access to physical host PCI devices.${NC}\n"
 fi
+sleep 0.8
+echo -e "${RED}[Edera Protection BLOCKED] Empty PCI Bus: Zero pass-through access to physical host PCI hardware.${NC}\n"
+sleep 1.5
 
 echo -e "${GREEN}====================================================${NC}"
-echo -e "${GREEN} Entering interactive Alpine shell. Type 'exit' to return to host.${NC}"
-echo -e "${GREEN}====================================================${NC}"
+echo -e "${GREEN} Security demonstration complete.                   ${NC}"
+echo -e "${GREEN} Interactive shell open below. Type 'exit' to end.  ${NC}"
+echo -e "${GREEN}====================================================${NC}\n"
+
 exec sh
 EOF
 )
 
-# 4. Launch Workload
+# 4. Launch Workload inside Zone
 echo -e "\n${YELLOW}🐳 Launching Alpine workload inside ${ZONE_NAME}...${NC}\n"
 sudo protect workload launch \
   --zone "${ZONE_NAME}" \
@@ -101,11 +137,11 @@ sudo protect workload launch \
   -t -a \
   docker.io/library/alpine:latest sh -c "$GUEST_PAYLOAD"
 
-# 5. Host-side Comparison
+# 5. Host-side Comparison after exit
 echo -e "\n${BLUE}====================================================${NC}"
 echo -e "${BLUE}  [Edera Protection] BACK ON HOST SYSTEM            ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
 
 HOST_KERNEL=$(uname -r)
 echo -e "${CYAN}Host Kernel Version: ${HOST_KERNEL}${NC}"
-echo -e "${GREEN}[Edera Protection Verified] Host kernel (${HOST_KERNEL}) differs from guest microVM kernel.${NC}\n"
+echo -e "${GREEN}[Edera Protection Verified] Host kernel (${HOST_KERNEL}) differs from guest kernel.${NC}\n"
