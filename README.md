@@ -326,3 +326,6 @@ Restart service (after license refresh in ```EderaOn```):
 sudo cat /var/lib/edera/protect/license.key
 sudo systemctl restart protect-daemon protect-network
 ```
+
+- Running ```uname -r``` in the workload returns ```6.18.44-edera-zone```
+- Running ```uname -r``` on the host returns ```6.18.44-edera-host```
