@@ -315,9 +315,14 @@ List the ```yaml``` output information associated with running workloads:
 sudo protect workload list --output yaml
 ```
 
-Reload services:
+Reload services (during falco tests):
 ```
 sudo systemctl daemon-reload
 sudo systemctl restart protect-cri
+```
 
+Restart service (after license refresh in ```EderaOn```):
+```
+sudo cat /var/lib/edera/protect/license.key
+sudo systemctl restart protect-daemon protect-network
 ```
