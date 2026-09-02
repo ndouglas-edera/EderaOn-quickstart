@@ -329,3 +329,8 @@ sudo systemctl restart protect-daemon protect-network
 
 - Running ```uname -r``` in the workload returns ```6.18.44-edera-zone```
 - Running ```uname -r``` on the host returns ```6.18.44-edera-host```
+
+NB: Clean all screenshots off my desktop before starting a demo 
+```
+rm ~/Desktop/Screenshot*.png
+```
